@@ -1,0 +1,23 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Transaction {
+  id Int @default(autoincrement()) @id
+  from String @db.VarChar
+  to String @db.VarChar
+  transactionHash String @db.VarChar @unique @map(name: "transaction_hash")
+  status Int
+  blockNumber BigInt? @map(name: "block_number")
+  createdAt DateTime @default(now()) @map(name: "created_at")
+  updatedAt DateTime @default(now()) @map(name: "updated_at")
+  @@map(name: "transactions")
+}

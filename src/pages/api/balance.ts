@@ -27,7 +27,7 @@ export default async function handler(
     .address!.find({})
     .project({ balance: 1, pending_amount: 1 })
     .toArray() as Address[];
-
+    
   const balance = addresses.reduce((total: number, address: Address) => {
     const balance =
       parseInt(address.balance, 10) +
