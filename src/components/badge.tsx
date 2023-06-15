@@ -1,15 +1,16 @@
-import { TransactionStatus } from '@/lib/constants';
+import { PrismaTransactionStatus } from '@/lib/constants';
 import React from 'react';
 
 export interface IBadgeProps {
-  status: TransactionStatus;
+  status: PrismaTransactionStatus;
   text: string;
 }
 
 const BADGE_COLORS = {
-  [TransactionStatus.Confirmed]: '#2ECC71',
-  [TransactionStatus.Failed]: '#E74C3C',
-  [TransactionStatus.Pending]: '#3498DB',
+  [PrismaTransactionStatus.Confirmed]: '#2ECC71',
+  [PrismaTransactionStatus.Committed]: '#16A34A',
+  [PrismaTransactionStatus.Failed]: '#E74C3C',
+  [PrismaTransactionStatus.Pending]: '#3498DB',
 };
 
 function Badge(props: IBadgeProps) {

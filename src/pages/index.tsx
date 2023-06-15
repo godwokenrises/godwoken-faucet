@@ -1,14 +1,14 @@
 import useSWR from 'swr';
-import { fetcher, formatValue, getAbbreviation } from '@/lib/utils';
+import { fetcher, formatValue, getAbbreviation, weiToEth } from '@/lib/utils';
 import BeatLoader from 'react-spinners/BeatLoader';
 import Button from 'react-bootstrap/Button';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import Badge from '@/components/badge';
-import { TransactionStatus } from '@/lib/constants';
+import { PrismaTransactionStatus } from '@/lib/constants';
 import React from 'react';
-import { Transaction } from '@/lib/database';
+import { Transaction } from '@prisma/client';
 
 export default function Home() {
   const [address, setAddress] = React.useState('');
@@ -104,13 +104,13 @@ export default function Home() {
             <h2 className="text-3xl text-gray-800 font-semibold mb-6">Claims</h2>
             <div>
               {transactions.map((tx: Transaction) => {
-                const date = new Date(+tx.time.$timestamp!);
+                const date = new Date(tx.createdAt);
                 return (
-                    <div className="relative " key={tx.hash}>
+                    <div className="relative " key={tx.transactionHash}>
                       <div className="absolute -bottom-1 -left-1 bg-green-600 border border-gray-400 w-full h-full -z-10" />
                       <div className="flex flex-col p-8 mb-8 bg-white border border-gray-400 z-30">
                         <div className="flex flex-col sm:flex-row justify-between pb-2 border-b border-gray-200">
-                          <span>{getAbbreviation(tx.hash, 12, 20)}</span>
+                          <span>{getAbbreviation(tx.transactionHash, 12, 20)}</span>
                           <span className="text-gray-600">
                         {date.toLocaleDateString()} {date.toLocaleTimeString()}
                       </span>
@@ -131,13 +131,13 @@ export default function Home() {
                             </div>
                           </div>
                           <span>
-                        {formatValue(parseInt(tx.value, 10))} Token(s)
+                        {weiToEth(BigInt(tx.value.toString()))} Token(s)
                       </span>
                         </div>
                         <div className="mt-4">
                           <Badge
                               status={tx.status}
-                              text={TransactionStatus[tx.status]}
+                              text={PrismaTransactionStatus[tx.status]}
                           />
                         </div>
                       </div>

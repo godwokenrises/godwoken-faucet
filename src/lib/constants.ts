@@ -1,9 +1,3 @@
-export enum TransactionStatus {
-  Pending = 0,
-  Confirmed = 1,
-  Failed = 2,
-}
-
 export enum PrismaTransactionStatus {
   // after send succeed
   Pending = 1,

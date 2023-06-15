@@ -5,6 +5,7 @@ CREATE TABLE "transactions" (
     "to" VARCHAR NOT NULL,
     "transaction_hash" VARCHAR NOT NULL,
     "status" INTEGER NOT NULL,
+    "value" DECIMAL(80,0) NOT NULL,
     "block_number" BIGINT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

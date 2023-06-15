@@ -1,12 +1,11 @@
-import { connectToDatabase } from '@/lib/database';
 import { ethers } from 'ethers';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { TransactionStatus } from '@/lib/constants';
 import provider from '@/lib/provider';
 import env from '@/lib/env';
 import { ZodError, z } from 'zod';
-import { Timestamp } from 'mongodb';
 import { pino } from 'pino';
+import { prismaOps } from '@/prisma';
+import { Transaction } from '@prisma/client';
 
 const logger = pino();
 
@@ -18,13 +17,12 @@ type Data =
       nonce: string;
       hash: string;
       gas: string;
+      status: string
     }
   | {
       message: string;
       error?: ZodError;
     };
-
-const { AXON_FAUCET_REQUIRED_CONFIRMATIONS, AXON_FAUCET_CLAIM_VALUE } = env;
 
 const schema = z.object({
   account: z.string(),
@@ -40,7 +38,8 @@ export default async function handler(
     });
     return;
   }
-  const collections = await connectToDatabase();
+
+  console.log(JSON.stringify(req.body, null, 2))
 
   const params = schema.safeParse(JSON.parse(req.body));
   if (!params.success) {
@@ -52,53 +51,49 @@ export default async function handler(
   }
   const { account } = params.data;
 
-  const cursor = collections.address!.find({}).sort({ private_key: 1 });
-  let fromAddress;
-  while (await cursor.hasNext()) {
-    const address = await cursor.next();
-    if (!address) {
-      break;
-    }
-    const pendingAmount = address!.pending_amount.reduce(
-      (sum, amount) => sum + parseInt(amount, 10),
-      0,
-    );
-    if (
-      parseInt(address.balance, 10) + pendingAmount >
-      AXON_FAUCET_CLAIM_VALUE
-    ) {
-      fromAddress = address;
-      break;
-    }
-  }
-  await cursor.close();
+  const claimValueInEth = env.CLAIM_VALUE
 
-  if (!fromAddress) {
-    res.status(500).json({
-      message: 'Tokens insufficient',
+  const privateKey = env.FAUCET_PRIVATE_KEY;
+  const signer = new ethers.Wallet(privateKey, provider);
+  const from = signer.address;
+
+  logger.info(`[claim] fromAddress: ${from}, toAddress: ${account}, amount(pCKB): ${claimValueInEth}`);
+
+  // TODO: check assets in bridges
+
+  const claimValueInWei = ethers.parseUnits(claimValueInEth.toString(), "ether")
+
+  let txResult: [Transaction, ethers.TransactionResponse] | undefined
+
+  try {
+    txResult = await prismaOps.create(
+      from,
+      account,
+      async () => {
+        return await signer.sendTransaction({
+          to: account,
+          value: claimValueInWei.toString(),
+          gasLimit: 50000,
+        })
+      }
+    )
+  } catch (err: any) {
+    return res.status(200).json({
+      message: err.message,
+    })
+  }
+
+  if (txResult == null) {
+    res.status(200).json({
+      message: 'Already sent',
     });
     return;
   }
 
-  const signer = new ethers.Wallet(fromAddress?.private_key!, provider);
-  const from = signer.address;
-  const amount = (-AXON_FAUCET_CLAIM_VALUE!).toString();
+  const [dbTx, tx] = txResult;
 
-  logger.info(`[claim] fromAddress: ${from}`);
-
-  await collections.address!.updateOne(
-    { private_key: fromAddress?.private_key },
-    { $push: { pending_amount: amount } },
-  );
-
-  const tx = await signer.sendTransaction({
-    to: account,
-    type: 2,
-    value: AXON_FAUCET_CLAIM_VALUE.toString(),
-    gasLimit: 21000,
-  });
-
-  const receipt = await tx.wait(1);
+  const receipt = await tx.wait();
+  const committedBlockNumber = receipt?.blockNumber;
   const result = {
     from,
     to: account,
@@ -106,29 +101,24 @@ export default async function handler(
     nonce: tx.nonce.toString(),
     hash: tx.hash,
     gas: receipt!.gasUsed.toString(),
+    status: receipt!.status!.toString(),
   };
-  await collections.transaction!.insertOne({
-    ...result,
-    time: Timestamp.fromNumber(Date.now()),
-    status: TransactionStatus.Pending,
-  });
 
-  logger.info(`[claim] tx: ${JSON.stringify(tx)}`);
+  // Update to committed
+  await prismaOps.updateToCommitted(dbTx.id, committedBlockNumber);
+
+  logger.info(`[claim] tx: ${JSON.stringify(result)}`);
 
   res.status(200).json(result);
 
-  await tx.wait(AXON_FAUCET_REQUIRED_CONFIRMATIONS);
-  await collections.transaction!.updateOne(
-    { hash: tx.hash },
-    { $set: { status: TransactionStatus.Confirmed } },
-  );
+  await tx.wait(env.REQUIRED_CONFIRMATIONS);
 
-  const balance = await provider.getBalance(signer.getAddress());
-  await collections.address!.updateOne(
-    { private_key: fromAddress?.private_key! },
-    {
-      balance,
-      $pop: { pending_amount: 1 },
-    },
-  );
+  const receiptStatus = receipt?.status;
+  if (receiptStatus === 1) {
+    await prismaOps.updateToConfirmed(dbTx.id)
+  } else if (receiptStatus === 0) {
+    await prismaOps.updateToFailed(dbTx.id)
+  }
+
+  // TODO: update status when server stopped
 }

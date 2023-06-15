@@ -8,6 +8,22 @@ export class PrismaOps {
 
   constructor() {}
 
+  async transactions(status: number[], skip: number, limit: number) {
+    const result = await this.prisma.transaction.findMany({
+      where: {
+        status: {
+          in: status,
+        }
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        id: "desc"
+      }
+    })
+    return result
+  }
+
   async create(
     from: string,
     to: string,
@@ -35,6 +51,7 @@ export class PrismaOps {
           from,
           to,
           transactionHash: txHash,
+          value: ttx.value.toString(),
           status: PrismaTransactionStatus.Pending,
         }
       })

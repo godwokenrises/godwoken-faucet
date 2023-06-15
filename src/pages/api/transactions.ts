@@ -1,24 +1,29 @@
-import { TransactionStatus } from '@/lib/constants';
-import { Transaction, connectToDatabase } from '@/lib/database';
+import { PrismaTransactionStatus } from '@/lib/constants';
 import env from '@/lib/env';
 import provider from '@/lib/provider';
+import { prismaOps } from '@/prisma';
+import { Transaction } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { pino } from 'pino';
 
 const logger = pino();
+
+(BigInt.prototype as any).toJSON = function() {
+  return this.toString();
+}
 
 type Data = {
   transactions?: Transaction[];
   message?: string;
 };
 
-const { AXON_FAUCET_REQUIRED_CONFIRMATIONS } = env;
-
 const DEFAULT_STATUS = [
-  TransactionStatus.Failed,
-  TransactionStatus.Pending,
-  TransactionStatus.Confirmed,
+  PrismaTransactionStatus.Failed,
+  PrismaTransactionStatus.Pending,
+  PrismaTransactionStatus.Confirmed,
+  PrismaTransactionStatus.Committed,
 ] as number[];
+
 const DEFAULT_PAGE_NUM = 0;
 const DEFAULT_SIZE_LIMIT = 20;
 
@@ -34,30 +39,15 @@ export default async function handler(
   }
   const { page, limit, status = DEFAULT_STATUS } = req.query;
 
-  const pageNum = parseInt(page as string, 10) ?? DEFAULT_PAGE_NUM;
-  const limitNum = parseInt(limit as string, 10) ?? DEFAULT_SIZE_LIMIT;
+  const pageNum = +(page as string) || DEFAULT_PAGE_NUM;
+  const limitNum = +(limit as string) || DEFAULT_SIZE_LIMIT;
 
-  const collections = await connectToDatabase();
-  const transactions = await collections.transaction!
-    .find({ status: { $in: status as number[] } })
-    .skip(pageNum * limitNum)
-    .limit(limitNum)
-    .project({
-      from: 1,
-      to: 1,
-      value: 1,
-      gas: 1,
-      nonce: 1,
-      hash: 1,
-      time: 1,
-      status: 1,
-    })
-    .sort({ time: -1 })
-    .toArray() as Transaction[];
+  const skip = pageNum * limitNum;
+  const transactions = await prismaOps.transactions(status as number[], skip, limitNum);
 
   logger.info(`[transactions] ${JSON.stringify({
-    page,
-    limit,
+    pageNum,
+    limitNum,
     status,
     transactions,
   })}`)
@@ -68,15 +58,15 @@ export default async function handler(
 
   await Promise.all(
     transactions
-      .filter(({ status }) => status === TransactionStatus.Pending)
-      .map(async ({ hash }) => {
-        const receipt = await provider.getTransactionReceipt(hash);
+      .filter(({ status }) => [
+        PrismaTransactionStatus.Pending,
+        PrismaTransactionStatus.Committed
+      ].includes(status))
+      .map(async ({ id, transactionHash }) => {
+        const receipt = await provider.getTransactionReceipt(transactionHash);
         const confirmations = (await receipt?.confirmations()) ?? 0;
-        if (confirmations > AXON_FAUCET_REQUIRED_CONFIRMATIONS) {
-          await collections.transaction!.updateOne(
-            { hash },
-            { status: TransactionStatus.Confirmed },
-          );
+        if (confirmations > env.REQUIRED_CONFIRMATIONS) {
+          await prismaOps.updateToConfirmed(id)
         }
       }),
   );

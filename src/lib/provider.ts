@@ -1,13 +1,8 @@
 import { ethers } from "ethers";
-
-const {
-  AXON_FAUCET_RPC_URL,
-  AXON_FAUCET_CHAIN_ID,
-} = process.env;
+import env from "./env";
 
 const provider = new ethers.JsonRpcProvider(
-  AXON_FAUCET_RPC_URL,
-  parseInt(AXON_FAUCET_CHAIN_ID!),
+  env.GODWOKEN_RPC_URL,
 );
 
 export default provider;
