@@ -5,6 +5,7 @@ import env from '@/lib/env';
 import { ZodError, z } from 'zod';
 import { pino } from 'pino';
 import { prismaOps } from '@/prisma';
+import { Transaction } from '@prisma/client';
 
 const logger = pino();
 
@@ -62,11 +63,10 @@ export default async function handler(
 
   const claimValueInWei = ethers.parseUnits(claimValueInEth.toString(), "ether")
 
-  let dbTx;
-  let tx;
+  let txResult: [Transaction, ethers.TransactionResponse] | undefined
 
   try {
-    [dbTx, tx] = await prismaOps.create(
+    txResult = await prismaOps.create(
       from,
       account,
       async () => {
@@ -83,12 +83,14 @@ export default async function handler(
     })
   }
 
-  if (tx == null) {
+  if (txResult == null) {
     res.status(200).json({
       message: 'Already sent',
     });
     return;
   }
+
+  const [dbTx, tx] = txResult;
 
   const receipt = await tx.wait();
   const committedBlockNumber = receipt?.blockNumber;

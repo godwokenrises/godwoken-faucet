@@ -1,4 +1,5 @@
 import { PrismaTransactionStatus } from '@/lib/constants';
+import env from '@/lib/env';
 import { PrismaClient, Transaction } from '@prisma/client';
 import { ethers } from 'ethers';
 
@@ -11,9 +12,9 @@ export class PrismaOps {
     from: string,
     to: string,
     func: () => Promise<ethers.TransactionResponse>,
-  ): Promise<[Transaction, ethers.TransactionResponse | undefined]> {
+  ): Promise<[Transaction, ethers.TransactionResponse] | undefined> {
     return await this.prisma.$transaction(async tx => {
-      const one = await tx.transaction.findFirst({
+      const txCount = await tx.transaction.count({
         where: {
           to,
           NOT: {
@@ -22,8 +23,8 @@ export class PrismaOps {
         },
       })
 
-      if (one != null) {
-        return [one, undefined];
+      if (txCount >= env.RECEIVING_TIME_LIMIT) {
+        return undefined;
       }
 
       const ttx = await func();
