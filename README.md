@@ -1,6 +1,7 @@
-# Axon Faucet
+# Godwoken Faucet
 
-![](https://user-images.githubusercontent.com/9718515/230877126-275ba6af-f45c-4f67-a391-8865ee47d44e.png)
+![screenshot-20230607-111345](https://github.com/lee920217/godwoken-faucet/assets/11926244/cfd7b9e4-eadf-4f9d-b8f5-7381e88aac0a)
+
 
 The Faucet is built using [React](https://reactjs.org/) and [Next.js](https://www.nextjs.com).
 
