@@ -1,6 +1,6 @@
 interface TokenStruct {
-  decimal: number
-  address: string
+  decimal: number;
+  address: string;
 }
 
 export const multichainMainnetTokens: { [key: string]: TokenStruct } = {
@@ -24,4 +24,4 @@ export const multichainMainnetTokens: { [key: string]: TokenStruct } = {
     address: "0x765277eebeca2e31912c9946eae1021199b39c61",
     decimal: 18,
   },
-}
+};
