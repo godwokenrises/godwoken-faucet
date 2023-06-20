@@ -6,6 +6,7 @@ import { ZodError, z } from 'zod';
 import { pino } from 'pino';
 import { prismaOps } from '@/prisma';
 import { Transaction } from '@prisma/client';
+import { hasEnoughUSD } from '@/lib/bridges';
 
 const logger = pino();
 
@@ -57,14 +58,22 @@ export default async function handler(
   const signer = new ethers.Wallet(privateKey, provider);
   const from = signer.address;
 
-  logger.info(`[claim] fromAddress: ${from}, toAddress: ${account}, amount(pCKB): ${claimValueInEth}`);
+  if (env.IS_MAINNET) {
+    // check assets in bridges
+    const flag = await hasEnoughUSD(account);
+    if (!flag) {
+      logger.info(`account ${account} don't have enough USD`)
+      return res.status(200).json({
+        message: `Don't have enough USD in bridges`,
+      })
+    }
+  }
 
-  // TODO: check assets in bridges
+  logger.info(`[claim] fromAddress: ${from}, toAddress: ${account}, amount(pCKB): ${claimValueInEth}`);
 
   const claimValueInWei = ethers.parseUnits(claimValueInEth.toString(), "ether")
 
   let txResult: [Transaction, ethers.TransactionResponse] | undefined
-
   try {
     txResult = await prismaOps.create(
       from,
@@ -91,7 +100,6 @@ export default async function handler(
   }
 
   const [dbTx, tx] = txResult;
-
   const receipt = await tx.wait();
   const committedBlockNumber = receipt?.blockNumber;
   const result = {

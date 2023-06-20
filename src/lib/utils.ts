@@ -1,3 +1,4 @@
+import Decimal from "decimal.js";
 import { ethers } from "ethers";
 
 export const fetcher = (...args: Parameters<typeof fetch>) =>
@@ -23,4 +24,16 @@ export function formatValue(value: number, digits = 2, decimal = 18) {
   }
 
   return left;
+}
+
+export function convertBalance(balance: Decimal, decimal: number): Decimal {
+  if (decimal === 0) {
+    return balance;
+  }
+
+  return balance.div(new Decimal(10).pow(decimal));
+}
+
+export async function asyncSleep(ms = 0) {
+  return new Promise((r) => setTimeout(() => r("ok"), ms));
 }
