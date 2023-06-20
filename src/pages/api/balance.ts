@@ -1,8 +1,8 @@
-import env from '@/lib/env';
-import provider from '@/lib/provider';
-import { ethers } from 'ethers';
-import { NextApiRequest, NextApiResponse } from 'next';
-import { pino } from 'pino';
+import env from "@/lib/env";
+import provider from "@/lib/provider";
+import { ethers } from "ethers";
+import { NextApiRequest, NextApiResponse } from "next";
+import { pino } from "pino";
 
 const logger = pino();
 
@@ -16,11 +16,11 @@ type Data =
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>,
+  res: NextApiResponse<Data>
 ) {
-  if (req.method !== 'GET') {
+  if (req.method !== "GET") {
     res.status(405).json({
-      message: 'Method Not Allowed',
+      message: "Method Not Allowed",
     });
     return;
   }

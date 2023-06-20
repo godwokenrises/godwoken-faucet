@@ -26,9 +26,9 @@ export interface ERC20Info {
 
 export async function balanceOf(
   contractAddress: string,
-  address: string,
+  address: string
 ): Promise<bigint> {
   const contract = new ethers.Contract(contractAddress, erc20ABI, signer);
-  const balance: bigint = await retry(async () => contract.balanceOf(address))
-  return balance
+  const balance: bigint = await retry(async () => contract.balanceOf(address));
+  return balance;
 }

@@ -1,7 +1,7 @@
-import { PrismaTransactionStatus } from '@/lib/constants';
-import env from '@/lib/env';
-import { PrismaClient, Transaction } from '@prisma/client';
-import { ethers } from 'ethers';
+import { PrismaTransactionStatus } from "@/lib/constants";
+import env from "@/lib/env";
+import { PrismaClient, Transaction } from "@prisma/client";
+import { ethers } from "ethers";
 
 export class PrismaOps {
   private prisma = new PrismaClient();
@@ -13,31 +13,31 @@ export class PrismaOps {
       where: {
         status: {
           in: status,
-        }
+        },
       },
       skip,
       take: limit,
       orderBy: {
-        id: "desc"
-      }
-    })
-    return result
+        id: "desc",
+      },
+    });
+    return result;
   }
 
   async create(
     from: string,
     to: string,
-    func: () => Promise<ethers.TransactionResponse>,
+    func: () => Promise<ethers.TransactionResponse>
   ): Promise<[Transaction, ethers.TransactionResponse] | undefined> {
-    return await this.prisma.$transaction(async tx => {
+    return await this.prisma.$transaction(async (tx) => {
       const txCount = await tx.transaction.count({
         where: {
           to,
           NOT: {
             status: PrismaTransactionStatus.Failed,
-          }
+          },
         },
-      })
+      });
 
       if (txCount >= env.RECEIVING_TIME_LIMIT) {
         return undefined;
@@ -53,24 +53,28 @@ export class PrismaOps {
           transactionHash: txHash,
           value: ttx.value.toString(),
           status: PrismaTransactionStatus.Pending,
-        }
-      })
+        },
+      });
 
-      return [result, ttx]
-    })
+      return [result, ttx];
+    });
   }
 
   async updateToCommitted(id: number, blockNumber?: number) {
-    return await this.updateStatus(id, PrismaTransactionStatus.Committed, blockNumber)
+    return await this.updateStatus(
+      id,
+      PrismaTransactionStatus.Committed,
+      blockNumber
+    );
   }
 
   async updateToConfirmed(id: number) {
-    return await this.updateStatus(id, PrismaTransactionStatus.Confirmed)
+    return await this.updateStatus(id, PrismaTransactionStatus.Confirmed);
   }
 
   // TODO: update to failed OR delete this ?
   async updateToFailed(id: number) {
-    return await this.updateStatus(id, PrismaTransactionStatus.Failed)
+    return await this.updateStatus(id, PrismaTransactionStatus.Failed);
   }
 
   private async updateStatus(
@@ -86,11 +90,11 @@ export class PrismaOps {
       data: {
         status,
         updatedAt: now,
-        blockNumber
-      }
-    })
+        blockNumber,
+      },
+    });
 
-    return result
+    return result;
   }
 }
 
