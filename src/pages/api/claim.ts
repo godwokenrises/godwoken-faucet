@@ -1,12 +1,12 @@
-import { ethers } from 'ethers';
-import { NextApiRequest, NextApiResponse } from 'next';
-import provider from '@/lib/provider';
-import env from '@/lib/env';
-import { ZodError, z } from 'zod';
-import { pino } from 'pino';
-import { prismaOps } from '@/prisma';
-import { Transaction } from '@prisma/client';
-import { hasEnoughUSD } from '@/lib/bridges';
+import { ethers } from "ethers";
+import { NextApiRequest, NextApiResponse } from "next";
+import provider from "@/lib/provider";
+import env from "@/lib/env";
+import { ZodError, z } from "zod";
+import { pino } from "pino";
+import { prismaOps } from "@/prisma";
+import { Transaction } from "@prisma/client";
+import { hasEnoughUSD } from "@/lib/bridges";
 
 const logger = pino();
 
@@ -18,7 +18,7 @@ type Data =
       nonce: string;
       hash: string;
       gas: string;
-      status: string
+      status: string;
     }
   | {
       message: string;
@@ -31,28 +31,28 @@ const schema = z.object({
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>,
+  res: NextApiResponse<Data>
 ) {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     res.status(405).json({
-      message: 'Method Not Allowed',
+      message: "Method Not Allowed",
     });
     return;
   }
 
-  console.log(JSON.stringify(req.body, null, 2))
+  console.log(JSON.stringify(req.body, null, 2));
 
   const params = schema.safeParse(JSON.parse(req.body));
   if (!params.success) {
     res.status(400).json({
-      message: 'Invalid request',
+      message: "Invalid request",
       error: params.error,
     });
     return;
   }
   const { account } = params.data;
 
-  const claimValueInEth = env.CLAIM_VALUE
+  const claimValueInEth = env.CLAIM_VALUE;
 
   const privateKey = env.FAUCET_PRIVATE_KEY;
   const signer = new ethers.Wallet(privateKey, provider);
@@ -62,39 +62,40 @@ export default async function handler(
     // check assets in bridges
     const flag = await hasEnoughUSD(account);
     if (!flag) {
-      logger.info(`account ${account} don't have enough USD`)
+      logger.info(`account ${account} don't have enough USD`);
       return res.status(200).json({
         message: `Don't have enough USD in bridges`,
-      })
+      });
     }
   }
 
-  logger.info(`[claim] fromAddress: ${from}, toAddress: ${account}, amount(pCKB): ${claimValueInEth}`);
+  logger.info(
+    `[claim] fromAddress: ${from}, toAddress: ${account}, amount(pCKB): ${claimValueInEth}`
+  );
 
-  const claimValueInWei = ethers.parseUnits(claimValueInEth.toString(), "ether")
+  const claimValueInWei = ethers.parseUnits(
+    claimValueInEth.toString(),
+    "ether"
+  );
 
-  let txResult: [Transaction, ethers.TransactionResponse] | undefined
+  let txResult: [Transaction, ethers.TransactionResponse] | undefined;
   try {
-    txResult = await prismaOps.create(
-      from,
-      account,
-      async () => {
-        return await signer.sendTransaction({
-          to: account,
-          value: claimValueInWei.toString(),
-          gasLimit: 50000,
-        })
-      }
-    )
+    txResult = await prismaOps.create(from, account, async () => {
+      return await signer.sendTransaction({
+        to: account,
+        value: claimValueInWei.toString(),
+        gasLimit: 50000,
+      });
+    });
   } catch (err: any) {
     return res.status(200).json({
       message: err.message,
-    })
+    });
   }
 
   if (txResult == null) {
     res.status(200).json({
-      message: 'Already sent',
+      message: "Already sent",
     });
     return;
   }
@@ -123,9 +124,9 @@ export default async function handler(
 
   const receiptStatus = receipt?.status;
   if (receiptStatus === 1) {
-    await prismaOps.updateToConfirmed(dbTx.id)
+    await prismaOps.updateToConfirmed(dbTx.id);
   } else if (receiptStatus === 0) {
-    await prismaOps.updateToFailed(dbTx.id)
+    await prismaOps.updateToFailed(dbTx.id);
   }
 
   // TODO: update status when server stopped
