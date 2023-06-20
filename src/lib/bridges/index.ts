@@ -8,6 +8,7 @@ import { convertBalance } from "../utils";
 import env from "../env";
 
 const REMOVE_SYMBOLS: string[] = [];
+const removeSymbols: Set<string> = new Set<string>(REMOVE_SYMBOLS.map(s => s.toUpperCase()));
 
 async function getBalanceInUSD(
   tokenAddress: string,
@@ -32,7 +33,7 @@ export async function hasEnoughUSD(address: string): Promise<boolean> {
     multichainSymbols
       .concat(celerSymbols)
       .concat(godwokenBridgeSymbols)
-      .filter(s => !REMOVE_SYMBOLS.includes(s))
+      .filter(s => !removeSymbols.has(s.toUpperCase()))
   );
 
   const priceInfos = await averagePriceInfos(allSymbols);
