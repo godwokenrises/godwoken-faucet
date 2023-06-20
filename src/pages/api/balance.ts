@@ -1,4 +1,6 @@
-import { connectToDatabase, Address } from '@/lib/database';
+import env from '@/lib/env';
+import provider from '@/lib/provider';
+import { ethers } from 'ethers';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { pino } from 'pino';
 
@@ -22,21 +24,10 @@ export default async function handler(
     });
     return;
   }
-  const collections = await connectToDatabase();
-  const addresses = await collections
-    .address!.find({})
-    .project({ balance: 1, pending_amount: 1 })
-    .toArray() as Address[];
 
-  const balance = addresses.reduce((total: number, address: Address) => {
-    const balance =
-      parseInt(address.balance, 10) +
-      address.pending_amount.reduce(
-        (sum: number, amount: string) => sum + parseInt(amount, 10),
-        0,
-      );
-    return total + balance;
-  }, 0);
+  const signer = new ethers.Wallet(env.FAUCET_PRIVATE_KEY, provider);
+  const from = signer.address;
+  const balance: bigint = await provider.getBalance(from);
 
   logger.info(`[balance] ${balance}`);
 

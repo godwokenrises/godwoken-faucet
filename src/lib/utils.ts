@@ -1,9 +1,15 @@
+import { ethers } from "ethers";
+
 export const fetcher = (...args: Parameters<typeof fetch>) =>
   fetch(...args).then((res) => res.json());
 
 
 export function getAbbreviation(address: string, begin: number, end: number) {
   return `${address.substring(0, begin)}...${address.substring(address.length - end, address.length)}`;
+}
+
+export function weiToEth(value: bigint): string {
+  return ethers.formatEther(value);
 }
 
 export function formatValue(value: number, digits = 2, decimal = 18) {
