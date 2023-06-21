@@ -1,6 +1,6 @@
 import { requestTo } from "./client";
 
-const url =
+const TOKEN_URL =
   "https://raw.githubusercontent.com/godwokenrises/godwoken-info/main/mainnet_v1/bridged-token-list.json";
 
 interface TokenStruct {
@@ -10,7 +10,7 @@ interface TokenStruct {
 }
 
 async function getGodwokenTokens(): Promise<TokenStruct[]> {
-  const res = await requestTo(url);
+  const res = await requestTo(TOKEN_URL);
   const godwokenTokens: TokenStruct[] = (res as any[]).map((token) => {
     let name = token.info.symbol.split("|")[0];
     if (name === "pCKB" || name === "dCKB") {
@@ -26,9 +26,10 @@ async function getGodwokenTokens(): Promise<TokenStruct[]> {
 }
 
 let godwokenTokens: TokenStruct[] | undefined;
-export async function getTokens(): Promise<TokenStruct[]> {
+export async function tokens(): Promise<TokenStruct[]> {
   if (godwokenTokens != null) {
     return godwokenTokens;
   }
-  return await getGodwokenTokens();
+  godwokenTokens = await getGodwokenTokens();
+  return godwokenTokens;
 }

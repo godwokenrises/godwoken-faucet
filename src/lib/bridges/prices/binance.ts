@@ -1,9 +1,7 @@
 import { requestTo } from "../client";
 import { PriceInfos } from "./base";
 
-export async function binancePrices(
-  allSymbols: Set<string>
-): Promise<PriceInfos> {
+export async function prices(allSymbols: Set<string>): Promise<PriceInfos> {
   const priceInfos: PriceInfos = new Map();
   const prices = await binancePrice();
 
@@ -33,7 +31,7 @@ async function binancePrice(): Promise<Map<string, string>> {
   return infos;
 }
 
-export function getBinancePrice(
+function getBinancePrice(
   coinSymbol: string,
   infos: BinancePriceInfo
 ): string | undefined {
