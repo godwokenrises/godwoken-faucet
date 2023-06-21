@@ -1,9 +1,7 @@
 import { requestTo } from "../client";
 import { PriceInfos } from "./base";
 
-export async function coingeckoPrices(
-  allSymbols: Set<string>
-): Promise<PriceInfos> {
+export async function prices(allSymbols: Set<string>): Promise<PriceInfos> {
   const id2SymbolMap = await allPrices(allSymbols);
   const tokenIds = Array.from(id2SymbolMap).join(",");
   const url = `https://api.coingecko.com/api/v3/simple/price?ids=${tokenIds}&vs_currencies=usd`;

@@ -1,15 +1,13 @@
 import Decimal from "decimal.js";
-import { binancePrices } from "./binance";
-import { coingeckoPrices } from "./coingecko";
-import { cryptocomPrices } from "./cryptocom";
+import * as Binance from "./binance";
+import * as Coingecko from "./coingecko";
+import * as CryptoCom from "./cryptocom";
 import { PriceInfos } from "./base";
 import { pino } from "pino";
 
 const logger = pino();
 
-export async function averagePriceInfos(
-  allSymbols: Set<string>
-): Promise<PriceInfos> {
+export async function prices(allSymbols: Set<string>): Promise<PriceInfos> {
   let failedPriceInfos = 0;
 
   let binancePriceInfos: PriceInfos = new Map<string, string>();
@@ -17,21 +15,21 @@ export async function averagePriceInfos(
   let cryptocomPriceInfos: PriceInfos = new Map<string, string>();
 
   try {
-    binancePriceInfos = await binancePrices(allSymbols);
+    binancePriceInfos = await Binance.prices(allSymbols);
   } catch (err) {
     logger.error(`request to binance failed`);
     failedPriceInfos += 1;
   }
 
   try {
-    coingeckoPriceInfos = await coingeckoPrices(allSymbols);
+    coingeckoPriceInfos = await Coingecko.prices(allSymbols);
   } catch (err) {
     logger.error(`request to coingecko failed`);
     failedPriceInfos += 1;
   }
 
   try {
-    cryptocomPriceInfos = await cryptocomPrices(allSymbols);
+    cryptocomPriceInfos = await CryptoCom.prices(allSymbols);
   } catch (err) {
     logger.error(`request to crypto.com failed`);
     failedPriceInfos += 1;

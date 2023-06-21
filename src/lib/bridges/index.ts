@@ -1,8 +1,8 @@
 import Decimal from "decimal.js";
-import { getTokens as getCelerTokens } from "./celer";
-import { multichainMainnetTokens } from "./multichain";
-import { getTokens as getGodwokenBridgeTokens } from "./mainnet_bridged_token_list";
-import { averagePriceInfos } from "./prices/average";
+import * as Celer from "./celer";
+import * as Multichain from "./multichain";
+import * as GodwokenBridge from "./mainnet_bridged_token_list";
+import * as AveragePrice from "./prices/average";
 import { balanceOf } from "./erc20";
 import { convertBalance } from "../utils";
 import env from "../env";
@@ -28,10 +28,10 @@ async function getBalanceInUSD(
 }
 
 export async function hasEnoughUSD(address: string): Promise<boolean> {
-  const celerTokens = await getCelerTokens();
-  const godwokenBridgeTokens = await getGodwokenBridgeTokens();
+  const celerTokens = await Celer.tokens();
+  const godwokenBridgeTokens = await GodwokenBridge.tokens();
 
-  const multichainSymbols = Object.keys(multichainMainnetTokens);
+  const multichainSymbols = Object.keys(Multichain.tokens);
   const celerSymbols = celerTokens.map((t) => t.token.symbol);
   const godwokenBridgeSymbols = godwokenBridgeTokens.map((t) => t.name);
   const allSymbols = new Set(
@@ -41,12 +41,12 @@ export async function hasEnoughUSD(address: string): Promise<boolean> {
       .filter((s) => !removeSymbols.has(s.toUpperCase()))
   );
 
-  const priceInfos = await averagePriceInfos(allSymbols);
+  const priceInfos = await AveragePrice.prices(allSymbols);
   let totalBalanceInUSD = new Decimal(0);
 
   // Multichain
   for (const [tokenName, { address: tokenAddress, decimal }] of Object.entries(
-    multichainMainnetTokens
+    Multichain.tokens
   )) {
     const price: string | undefined = priceInfos.get(tokenName);
     if (price == null) {

@@ -1,7 +1,6 @@
 import { requestTo } from "./client";
 
-const tokensInCelerURL =
-  "https://cbridge-prod2.celer.app/v1/getTransferConfigsForAll";
+const TOKEN_URL = "https://cbridge-prod2.celer.app/v1/getTransferConfigsForAll";
 
 interface TokenStruct {
   token: {
@@ -13,16 +12,17 @@ interface TokenStruct {
 }
 
 async function getGodwokenTokens(): Promise<TokenStruct[]> {
-  const res = await requestTo(tokensInCelerURL);
+  const res = await requestTo(TOKEN_URL);
   const chainTokens = res.chain_token;
   const godwokenTokens: TokenStruct[] = chainTokens["71402"].token;
   return godwokenTokens;
 }
 
 let godwokenTokens: TokenStruct[] | undefined;
-export async function getTokens(): Promise<TokenStruct[]> {
+export async function tokens(): Promise<TokenStruct[]> {
   if (godwokenTokens != null) {
     return godwokenTokens;
   }
-  return await getGodwokenTokens();
+  godwokenTokens = await getGodwokenTokens();
+  return godwokenTokens;
 }

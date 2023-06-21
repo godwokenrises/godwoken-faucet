@@ -1,9 +1,11 @@
 interface TokenStruct {
-  decimal: number;
-  address: string;
+  [key: string]: {
+    decimal: number;
+    address: string;
+  };
 }
 
-export const multichainMainnetTokens: { [key: string]: TokenStruct } = {
+export const tokens: TokenStruct = {
   USDC: {
     address: "0xe3f5a90f9cb311505cd691a46596599aa1a0ad7d",
     decimal: 6,

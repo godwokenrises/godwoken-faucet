@@ -2,9 +2,7 @@ import { requestTo } from "../client";
 import { PriceInfos } from "./base";
 
 // https://api.crypto.com/v2/public/get-instruments
-export async function cryptocomPrices(
-  allSymbols: Set<string>
-): Promise<PriceInfos> {
+export async function prices(allSymbols: Set<string>): Promise<PriceInfos> {
   const instrumentName2Symbol = await allPrices(allSymbols);
 
   const priceInfos: PriceInfos = new Map();
