@@ -6,14 +6,6 @@
 
 The Faucet is built using [React](https://reactjs.org/) and [Next.js](https://www.nextjs.com).
 
-## How to usage
-
-1. Add and update .env file:
-```
-mv .env.example .env
-```
-
-See `.env.example` for more info.
 
 ## Contributing 
 
@@ -38,7 +30,7 @@ yarn install
 mv .env.example .env
 ```
 
-3. Start the development server:
+4. Start the development server:
 
 ```bash
 yarn dev
