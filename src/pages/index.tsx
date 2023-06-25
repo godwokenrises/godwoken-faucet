@@ -98,7 +98,8 @@ export default function Home() {
           <div className="mb-16">
             <span className="text-white">
               There are{" "}
-              {balanceData ? formatValue(balanceData.balance) : "-.--"} Token(s)
+              {balanceData ? formatValue(balanceData.balance) : "-.--"}{" "}
+              <a href="https://docs.godwoken.io/pCKB">pCKB </a>
               left in Godwoken Faucet
             </span>
           </div>
@@ -134,7 +135,8 @@ export default function Home() {
                         </div>
                       </div>
                       <span>
-                        {weiToEth(BigInt(tx.value.toString()))} Token(s)
+                        {weiToEth(BigInt(tx.value.toString()))}{" "}
+                        <a href="https://docs.godwoken.io/pCKB">pCKB</a>
                       </span>
                     </div>
                     <div className="mt-4">
