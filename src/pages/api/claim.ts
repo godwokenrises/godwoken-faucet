@@ -64,7 +64,7 @@ export default async function handler(
     if (!flag) {
       logger.info(`account ${account} don't have enough USD`)
       return res.status(200).json({
-        message: `Don't have enough USD in bridges`,
+        message: `To stop spam attacks draining the faucet, the account must contain assets such as USDC or USDT that have been bridged from Celer cBridge or Multichain.`
       })
     }
   }

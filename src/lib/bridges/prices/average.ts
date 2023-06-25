@@ -35,7 +35,7 @@ export async function averagePriceInfos(allSymbols: Set<string>): Promise<PriceI
     failedPriceInfos += 1;
   }
 
-  if (failedPriceInfos === 0) {
+  if (failedPriceInfos === 3) {
     throw new Error(`all request to exchanges are failed, no token price info get`)
   }
 
