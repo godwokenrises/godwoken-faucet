@@ -1,18 +1,11 @@
 # Godwoken Faucet
 
-![screenshot-20230607-111345](https://github.com/lee920217/godwoken-faucet/assets/11926244/cfd7b9e4-eadf-4f9d-b8f5-7381e88aac0a)
-
+<p align="center">
+  <img align="center" width="761" alt="godwoken-faucet-screenshot" src="https://github.com/godwokenrises/godwoken-faucet/assets/1297478/12c25141-7124-426b-9bbe-95186c81b522">
+</p>
 
 The Faucet is built using [React](https://reactjs.org/) and [Next.js](https://www.nextjs.com).
 
-## How to usage
-
-1. Add and update .env file:
-```
-mv .env.example .env
-```
-
-See `.env.example` for more info.
 
 ## Contributing 
 
@@ -37,7 +30,7 @@ yarn install
 mv .env.example .env
 ```
 
-3. Start the development server:
+4. Start the development server:
 
 ```bash
 yarn dev

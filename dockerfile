@@ -1,6 +1,10 @@
-FROM node:16
-ADD . .
-RUN yarn install
+FROM node:18-bullseye
+
+COPY . /faucet
+
+WORKDIR /faucet
+
+RUN yarn
 RUN yarn build
 
 EXPOSE 3000
