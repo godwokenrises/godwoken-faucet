@@ -95,7 +95,7 @@ export default async function handler(
 
   if (txResult == null) {
     res.status(422).json({
-      message: "Already sent",
+      message: `Each account can only receive the Faucet ${env.RECEIVING_TIME_LIMIT} time(s)`,
     });
     return;
   }
