@@ -58,7 +58,7 @@ export default async function handler(
   const signer = new ethers.Wallet(privateKey, provider);
   const from = signer.address;
 
-  if (env.IS_MAINNET) {
+  if (env.REQUIRED_USD > 0) {
     // check assets in bridges
     const flag = await hasEnoughUSD(account);
     if (!flag) {
