@@ -5,9 +5,11 @@ import { cryptocomPrices } from "./cryptocom";
 import { PriceInfos } from "./base";
 import { pino } from "pino";
 
-const logger = pino()
+const logger = pino();
 
-export async function averagePriceInfos(allSymbols: Set<string>): Promise<PriceInfos> {
+export async function averagePriceInfos(
+  allSymbols: Set<string>
+): Promise<PriceInfos> {
   let failedPriceInfos = 0;
 
   let binancePriceInfos: PriceInfos = new Map<string, string>();
@@ -24,19 +26,21 @@ export async function averagePriceInfos(allSymbols: Set<string>): Promise<PriceI
   try {
     coingeckoPriceInfos = await coingeckoPrices(allSymbols);
   } catch (err) {
-    logger.error(`request to coingecko failed`)
+    logger.error(`request to coingecko failed`);
     failedPriceInfos += 1;
   }
 
   try {
     cryptocomPriceInfos = await cryptocomPrices(allSymbols);
   } catch (err) {
-    logger.error(`request to crypto.com failed`)
+    logger.error(`request to crypto.com failed`);
     failedPriceInfos += 1;
   }
 
   if (failedPriceInfos === 3) {
-    throw new Error(`all request to exchanges are failed, no token price info get`)
+    throw new Error(
+      `all request to exchanges are failed, no token price info get`
+    );
   }
 
   const getPrices = (symbol: string): Decimal[] => {

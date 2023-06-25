@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export interface IEnv {
-  CLAIM_VALUE: number
-  GODWOKEN_RPC_URL: string
-  REQUIRED_CONFIRMATIONS: number
-  FAUCET_PRIVATE_KEY: string
-  RECEIVING_TIME_LIMIT: number
-  REQUIRED_USD: number
+  CLAIM_VALUE: number;
+  GODWOKEN_RPC_URL: string;
+  REQUIRED_CONFIRMATIONS: number;
+  FAUCET_PRIVATE_KEY: string;
+  RECEIVING_TIME_LIMIT: number;
+  REQUIRED_USD: number;
 }
 
 const schema = z.object({
@@ -26,7 +26,6 @@ const REQUIRED_CONFIRMATIONS: number = +(env.REQUIRED_CONFIRMATIONS || 10);
 const RECEIVING_TIME_LIMIT: number = +(env.RECEIVING_TIME_LIMIT || 1);
 const REQUIRED_USD = +(env.REQUIRED_USD || 0);
 
-
 export default {
   ...env,
   CLAIM_VALUE,
@@ -34,4 +33,3 @@ export default {
   RECEIVING_TIME_LIMIT,
   REQUIRED_USD,
 } as IEnv;
-
