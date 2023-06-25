@@ -1,7 +1,7 @@
 # Godwoken Faucet
 
 <p align="center">
-  <img align="center" width="761" alt="godwoken-faucet-screenshot" src="https://github.com/godwokenrises/godwoken-faucet/assets/1297478/61dc995c-4a10-4dd3-9730-01c7b636a3f6">
+  <img align="center" alt="godwoken-faucet-screenshot" src="https://github.com/godwokenrises/godwoken-faucet/assets/1297478/61dc995c-4a10-4dd3-9730-01c7b636a3f6">
 </p>
 
 The Faucet is built using [React](https://reactjs.org/) and [Next.js](https://www.nextjs.com).
