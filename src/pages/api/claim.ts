@@ -58,13 +58,13 @@ export default async function handler(
   const signer = new ethers.Wallet(privateKey, provider);
   const from = signer.address;
 
-  if (env.IS_MAINNET) {
+  if (env.REQUIRED_USD > 0) {
     // check assets in bridges
     const flag = await hasEnoughUSD(account);
     if (!flag) {
       logger.info(`account ${account} don't have enough USD`);
-      return res.status(200).json({
-        message: `Don't have enough USD in bridges`,
+      return res.status(422).json({
+        message: `To stop spam attacks draining the faucet, the account must contain assets such as USDC or USDT that have been bridged from Celer cBridge or Multichain.`,
       });
     }
   }
@@ -88,13 +88,13 @@ export default async function handler(
       });
     });
   } catch (err: any) {
-    return res.status(200).json({
+    return res.status(422).json({
       message: err.message,
     });
   }
 
   if (txResult == null) {
-    res.status(200).json({
+    res.status(422).json({
       message: "Already sent",
     });
     return;
@@ -118,7 +118,7 @@ export default async function handler(
 
   logger.info(`[claim] tx: ${JSON.stringify(result)}`);
 
-  res.status(200).json(result);
+  res.status(201).json(result);
 
   await tx.wait(env.REQUIRED_CONFIRMATIONS);
 
